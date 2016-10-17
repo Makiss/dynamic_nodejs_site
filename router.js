@@ -1,33 +1,34 @@
-var Profile = require("./profile.js");
-
+var Profile = require('./profile.js');
+var renderer = require('./renderer.js');
 
 //Handle HTTP route GET / and POST / i.e. Home
 function home(request, response) {
-  //if url == "/" && GET
+  //if url == '/' && GET
   if(request.url === '/') {
     //show search
     response.setHeader('Content-Type', 'text/plain');
-    response.write('Header\n');
-    response.write('Search\n');
-    response.end('Footer\n');
+    renderer.view('header', {}, response);
+    renderer.view('search', {}, response);
+    renderer.view('footer', {}, response);
+    response.end();
   }
-  //if url == "/" && POST
+  //if url == '/' && POST
     //redirect to /:username
 }
 
 //Handle HTTP route GET /:username i.e. /chalkers
 function user(request, response) {
-  //if url == "/...."
+  //if url == '/....'
   var userName = request.url.replace('/', '');
   if(userName.length > 1) {
-    response.setHeader('Content-Type', 'text/plain');
-    response.write('Header\n');
+    response.setHeader('Content-Type', 'text/html');
+    renderer.view('header', {}, response);
 
     //get json from Treehouse
     var studentProfile = new Profile(userName);
 
-    //on "end"
-    studentProfile.on("end", function(profileJSON) {
+    //on 'end'
+    studentProfile.on('end', function(profileJSON) {
       //show profile
 
       // store the values which we need
@@ -38,16 +39,18 @@ function user(request, response) {
         jsPoints: profileJSON.points.JavaScript
       };
       // simple response
-      response.write(values.userName + ' has ' + values.badges + ' total badge(s) and ' +
-        values.jsPoints + ' points in JavaScript\n');
-      response.end('Footer\n');
+      renderer.view('profile', values, response);
+      renderer.view('footer', {}, response);
+      response.end();
     });
 
-    //on "error"
-    studentProfile.on("error", function(error) {
+    //on 'error'
+    studentProfile.on('error', function(error) {
       //show error
-      response.write(error.message + '\n');
-      response.end('Footer\n');
+      renderer.view('error', {errorMessage: error.message}, response);
+      renderer.view('search', {}, response);
+      renderer.view('footer', {}, response);
+      response.end();
     });
   }
 }
